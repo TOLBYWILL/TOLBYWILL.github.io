@@ -3,11 +3,22 @@ const gameContainer = document.querySelector('.game-container');
 let isJumping = false;
 let gravity = 0.5;
 let velocityY = 0;
+let playerSpeed = 5; // Speed of horizontal movement
 
 document.addEventListener('keydown', (event) => {
     if (event.code === 'Space' && !isJumping) {
         isJumping = true;
         velocityY = -10;
+    }
+    
+    // Move left
+    if (event.code === 'ArrowLeft') {
+        player.style.left = `${Math.max(0, parseFloat(player.style.left) - playerSpeed)}px`;
+    }
+    
+    // Move right
+    if (event.code === 'ArrowRight') {
+        player.style.left = `${Math.min(gameContainer.clientWidth - player.clientWidth, parseFloat(player.style.left) + playerSpeed)}px`;
     }
 });
 
