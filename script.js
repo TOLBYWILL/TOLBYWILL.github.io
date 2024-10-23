@@ -1,63 +1,21 @@
-const player = document.getElementById('player');
-const gameContainer = document.querySelector('.game-container');
-let isJumping = false;
-let gravity = 0.5;
-let velocityY = 0;
-let playerSpeed = 5; // Speed of horizontal movement
+let score = 0;
+let clickValue = 1;
 
-document.addEventListener('keydown', (event) => {
-    if (event.code === 'Space' && !isJumping) {
-        isJumping = true;
-        velocityY = -10;
-    }
-    
-    // Move left
-    if (event.code === 'ArrowLeft') {
-        player.style.left = `${Math.max(0, parseFloat(player.style.left) - playerSpeed)}px`;
-    }
-    
-    // Move right
-    if (event.code === 'ArrowRight') {
-        player.style.left = `${Math.min(gameContainer.clientWidth - player.clientWidth, parseFloat(player.style.left) + playerSpeed)}px`;
-    }
+const scoreDisplay = document.getElementById('score');
+const clickButton = document.getElementById('clickButton');
+const upgradeButton = document.getElementById('upgradeButton');
+
+clickButton.addEventListener('click', () => {
+    score += clickValue;
+    scoreDisplay.textContent = score;
+    upgradeButton.disabled = score < 10; // Enable upgrade button if score is enough
 });
 
-function gameLoop() {
-    // Gravity effect
-    if (isJumping) {
-        velocityY += gravity;
-        player.style.bottom = `${parseFloat(player.style.bottom) + velocityY}px`;
-
-        // Check for landing
-        if (parseFloat(player.style.bottom) <= 0) {
-            player.style.bottom = '0px';
-            isJumping = false;
-            velocityY = 0;
-        }
+upgradeButton.addEventListener('click', () => {
+    if (score >= 10) {
+        score -= 10;
+        clickValue++;
+        scoreDisplay.textContent = score;
+        upgradeButton.textContent = `Upgrade (Cost: ${10 * (clickValue)})`;
     }
-
-    // Check if player reaches the goal
-    const playerRect = player.getBoundingClientRect();
-    const goalRect = document.querySelector('.goal').getBoundingClientRect();
-
-    if (
-        playerRect.x < goalRect.x + goalRect.width &&
-        playerRect.x + playerRect.width > goalRect.x &&
-        playerRect.y < goalRect.y + goalRect.height &&
-        playerRect.y + playerRect.height > goalRect.y
-    ) {
-        alert('You reached the goal!');
-        resetGame();
-    }
-
-    requestAnimationFrame(gameLoop);
-}
-
-function resetGame() {
-    player.style.bottom = '0px';
-    player.style.left = '50px';
-    isJumping = false;
-    velocityY = 0;
-}
-
-gameLoop();
+});
