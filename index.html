@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2D Parkour Game</title>
+    <title>Clicker Game</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="game-container">
-        <div id="player"></div>
-        <div class="platform" style="top: 300px; left: 100px; width: 200px;"></div>
-        <div class="platform" style="top: 200px; left: 300px; width: 150px;"></div>
-        <div class="goal" style="top: 150px; left: 400px;"></div>
+    <div class="container">
+        <h1>Clicker Game</h1>
+        <div class="score">Score: <span id="score">0</span></div>
+        <button id="clickButton">Click Me!</button>
+        <div class="upgrades">
+            <button id="upgradeButton" disabled>Upgrade (Cost: 10)</button>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
