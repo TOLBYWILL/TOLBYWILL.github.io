@@ -3,18 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clicker Game</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Two-Player Shooter Game</title>
+    <style>
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #333;
+        }
+        canvas {
+            background-color: #000;
+            border: 1px solid white;
+        }
+        #winnerText {
+            position: absolute;
+            color: white;
+            font-size: 24px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Clicker Game</h1>
-        <div class="score">Score: <span id="score">0</span></div>
-        <button id="clickButton">Click Me!</button>
-        <div class="upgrades">
-            <button id="upgradeButton" disabled>Upgrade (Cost: 10)</button>
-        </div>
-    </div>
-    <script src="script.js"></script>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div id="winnerText"></div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const winnerText = document.getElementById('winnerText');
+
+        // Game variables
+        let bullets = [];
+        let gameOver = false;
+
+        // Define the two players
+        const players = [
+            {   // Player 1 (WASD controls, Shift to shoot, Q for immunity)
+                x: 100, y: 100, width: 30, height: 30,
+                color: 'red', speed: 5,
+                direction: { x: 0, y: 0 },
+                lastDirection: { x: 1, y: 0 },
+                health: 5, maxHealth: 5, alive: true,
+                immune: false, immuneCooldown: 0, immuneTimer: 0,
+                keys: { left: 'a', right: 'd', up: 'w', down: 's', shoot: 'Shift', ability: 'q' }
+            },
+            {   // Player 2 (Arrow keys, Enter to shoot, Ctrl for double damage)
+                x: 600, y: 400, width: 30, height: 30,
+                color: 'blue', speed: 5,
+                direction: { x: 0, y: 0 },
+                lastDirection: { x: -1, y: 0 },
+                health: 5, maxHealth: 5, alive: true,
+                doubleDamage: false, doubleDamageCooldown: 0, doubleDamageTimer: 0,
+                keys: { left: 'ArrowLeft', right: 'ArrowRight', up: 'ArrowUp', down: 'ArrowDown', shoot: 'Enter', ability: 'Control' }
+            }
+        ];
+
+        // Movement keys
+        let keys = {};
+
+        // Listen to keyboard events
+        document.addEventListener('keydown', (e) => keys[e.key] = true);
+        document.addEventListener('keyup', (e) => keys[e.key] = false);
+
+        // Handle shooting in the direction the player is facing
+        function shootBullet(player) {
+            const bullet = {
+                x: player.x + player.width / 2,
+                y: player.y + player.height / 2,
+                dx: player.lastDirection.x * 10,
+                dy: player.lastDirection.y * 10,
+                color: player.color,
+                damage: player.doubleDamage ? 2 : 1, // Double damage if active
+                playerColor: player.color // Track which player shot the bullet
+            };
+            bullets.push(bullet);
+        }
+
+        // Check for collisions between bullets and players
+        function checkBulletCollisions() {
+            bullets.forEach((bullet, bulletIndex) => {
+                players.forEach(player => {
+                    if (bullet.playerColor !== player.color && player.alive && !player.immune) { // Bullet must not hit its own player and player must not be immune
+                        if (bullet.x < player.x + player.width &&
+                            bullet.x + 5 > player.x &&
+                            bullet.y < player.y + player.height &&
+                            bullet.y + 5 > player.y) {
+                            
+                            // Player is hit, reduce health
+                            player.health -= bullet.damage;
+                            bullets.splice(bulletIndex, 1); // Remove bullet on hit
+
+                            // Check if player is dead
+                            if (player.health <= 0) {
+                                player.alive = false;
+                                endGame(bullet.playerColor); // End game and show winner
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        // Update players' movements and actions
+        function updatePlayers(deltaTime) {
+            players.forEach(player => {
+                if (player.alive) {
+                    // Movement controls and set the last direction they are facing
+                    if (keys[player.keys.left]) {
+                        player.x -= player.speed;
+                        player.lastDirection = { x: -1, y: 0 }; // Facing left
+                    }
+                    if (keys[player.keys.right]) {
+                        player.x += player.speed;
+                        player.lastDirection = { x: 1, y: 0 }; // Facing right
+                    }
+                    if (keys[player.keys.up]) {
+                        player.y -= player.speed;
+                        player.lastDirection = { x: 0, y: -1 }; // Facing up
+                    }
+                    if (keys[player.keys.down]) {
+                        player.y += player.speed;
+                        player.lastDirection = { x: 0, y: 1 }; // Facing down
+                    }
+
+                    // Shoot bullet
+                    if (keys[player.keys.shoot]) {
+                        shootBullet(player);
+                    }
+
+                    // Handle Player 1's Immunity Ability
+                    if (player.keys.ability === 'q' && keys[player.keys.ability] && player.immuneCooldown <= 0) {
+                        player.immune = true;
+                        player.immuneTimer = 3; // 3 seconds immunity
+                        player.immuneCooldown = 5; // 5 seconds cooldown
+                    }
+
+                    // Handle Player 2's Double Damage Ability
+                    if (player.keys.ability === 'Control' && keys[player.keys.ability] && player.doubleDamageCooldown <= 0) {
+                        player.doubleDamage = true;
+                        player.doubleDamageTimer = 3; // 3 seconds double damage
+                        player.doubleDamageCooldown = 7; // 7 seconds cooldown
+                    }
+
+                    // Update Immunity Timer and Cooldown
+                    if (player.immune) {
+                        player.immuneTimer -= deltaTime;
+                        if (player.immuneTimer <= 0) {
+                            player.immune = false;
+                        }
+                    }
+                    if (player.immuneCooldown > 0) {
+                        player.immuneCooldown -= deltaTime;
+                    }
+
+                    // Update Double Damage Timer and Cooldown
+                    if (player.doubleDamage) {
+                        player.doubleDamageTimer -= deltaTime;
+                        if (player.doubleDamageTimer <= 0) {
+                            player.doubleDamage = false;
+                        }
+                    }
+                    if (player.doubleDamageCooldown > 0) {
+                        player.doubleDamageCooldown -= deltaTime;
+                    }
+                }
+            });
+        }
+
+        // Draw health bars
+        function drawHealthBars() {
+            players.forEach(player => {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(player.x, player.y - 10, player.width, 5); // Draw the background bar
+                ctx.fillStyle = player.color;
+                ctx.fillRect(player.x, player.y - 10, (player.health / player.maxHealth) * player.width, 5); // Draw health proportional to current health
+            });
+        }
+
+        // Draw players
+        function drawPlayers() {
+            players.forEach(player => {
+                if (player.alive) {
+                    ctx.fillStyle = player.color;
+                    ctx.fillRect(player.x, player.y, player.width, player.height);
+                }
+            });
+        }
+
+        // Update and draw bullets
+        function updateBullets() {
+            bullets.forEach((bullet, index) => {
+                bullet.x += bullet.dx;
+                bullet.y += bullet.dy;
+
+                ctx.fillStyle = bullet.color;
+                ctx.fillRect(bullet.x, bullet.y, 5, 5);
+
+                // Remove bullets if they go off screen
+                if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+                    bullets.splice(index, 1);
+                }
+            });
+        }
+
+        // End the game and show the winner
+        function endGame(winningColor) {
+            gameOver = true;
+            winnerText.textContent = `${winningColor.toUpperCase()} WINS!`;
+        }
+
+        // Main game loop
+        let lastTime = 0;
+        function gameLoop(time) {
+            if (!gameOver) {
+                const deltaTime = (time - lastTime) / 1000;
+                lastTime = time;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+                updatePlayers(deltaTime);
+                updateBullets();
+                checkBulletCollisions();
+                drawPlayers();
+                drawHealthBars();
+
+                requestAnimationFrame(gameLoop); // Repeat the game loop
+            }
+        }
+
+        requestAnimationFrame(gameLoop);
+    </script>
 </body>
 </html>
