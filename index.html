@@ -3,16 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2D Parkour Game</title>
+    <title>Simple Pokémon Battle</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="game-container">
-        <div class="player" id="player"></div>
-        <div class="ground"></div>
-        <div class="obstacle" id="obstacle"></div>
-        <div class="end-point" id="endPoint"></div>
-        <div id="gameOver" class="game-over">Game Over!</div>
+        <h1>Pokémon Battle</h1>
+        <div class="pokemon-selection">
+            <h2>Choose your Pokémon:</h2>
+            <button onclick="selectPokemon('Pikachu')">Pikachu</button>
+            <button onclick="selectPokemon('Charmander')">Charmander</button>
+        </div>
+        <div class="battle-field">
+            <h2>Battle Field</h2>
+            <div id="player-pokemon"></div>
+            <div id="enemy-pokemon"></div>
+            <button id="attack-button" onclick="attack()" disabled>Attack!</button>
+            <div id="battle-log"></div>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
