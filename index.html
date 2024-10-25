@@ -3,24 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Pokémon Battle</title>
+    <title>Simple Platformer</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="game-container">
-        <h1>Pokémon Battle</h1>
-        <div class="pokemon-selection">
-            <h2>Choose your Pokémon:</h2>
-            <button onclick="selectPokemon('Pikachu')">Pikachu</button>
-            <button onclick="selectPokemon('Charmander')">Charmander</button>
-        </div>
-        <div class="battle-field">
-            <h2>Battle Field</h2>
-            <div id="player-pokemon"></div>
-            <div id="enemy-pokemon"></div>
-            <button id="attack-button" onclick="attack()" disabled>Attack!</button>
-            <div id="battle-log"></div>
-        </div>
+    <div id="game-container">
+        <div id="player"></div>
+        <div class="platform" style="left: 0; bottom: 50px; width: 200px;"></div>
+        <div class="platform" style="left: 250px; bottom: 150px; width: 200px;"></div>
+        <div class="platform" style="left: 500px; bottom: 100px; width: 200px;"></div>
     </div>
     <script src="script.js"></script>
 </body>
