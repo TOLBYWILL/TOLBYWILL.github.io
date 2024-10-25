@@ -1,36 +1,40 @@
-// script.js
-let playerPokemon;
-let enemyPokemon;
+const player = document.getElementById('player');
+const gameContainer = document.getElementById('game-container');
+let isJumping = false;
+let gravity = 0.5;
+let velocityY = 0;
+let playerBottom = 50; // Initial position of player bottom
+let playerLeft = 100; // Initial position of player left
 
-const pokemons = {
-    Pikachu: { health: 100, attack: 20 },
-    Charmander: { health: 100, attack: 15 }
-};
+document.addEventListener('keydown', (event) => {
+    if (event.code === 'ArrowRight') {
+        playerLeft += 5;
+        player.style.left = playerLeft + 'px';
+    }
+    if (event.code === 'ArrowLeft') {
+        playerLeft -= 5;
+        player.style.left = playerLeft + 'px';
+    }
+    if (event.code === 'Space' && !isJumping) {
+        isJumping = true;
+        velocityY = -10; // Jump strength
+    }
+});
 
-function selectPokemon(pokemon) {
-    playerPokemon = { ...pokemons[pokemon] };
-    enemyPokemon = { ...pokemons[Pikachu] }; // For simplicity, the enemy is always Pikachu
+function gameLoop() {
+    if (isJumping) {
+        velocityY += gravity; // Apply gravity
+        playerBottom += velocityY; // Update player's vertical position
+        player.style.bottom = playerBottom + 'px';
 
-    document.getElementById('player-pokemon').innerText = `Your Pokémon: ${pokemon} (Health: ${playerPokemon.health})`;
-    document.getElementById('enemy-pokemon').innerText = `Enemy Pokémon: Pikachu (Health: ${enemyPokemon.health})`;
-    document.getElementById('attack-button').disabled = false;
+        // Check for collision with ground/platforms
+        if (playerBottom <= 50) {
+            playerBottom = 50; // Reset to ground level
+            isJumping = false; // Stop jumping
+            velocityY = 0; // Reset velocity
+        }
+    }
+    requestAnimationFrame(gameLoop); // Keep the loop going
 }
 
-function attack() {
-    enemyPokemon.health -= playerPokemon.attack;
-    document.getElementById('battle-log').innerText += `You attacked! Enemy health: ${enemyPokemon.health}\n`;
-
-    if (enemyPokemon.health <= 0) {
-        document.getElementById('battle-log').innerText += "You win!";
-        document.getElementById('attack-button').disabled = true;
-        return;
-    }
-
-    playerPokemon.health -= enemyPokemon.attack || 0; // Simple enemy attack
-    document.getElementById('battle-log').innerText += `Enemy attacked! Your health: ${playerPokemon.health}\n`;
-
-    if (playerPokemon.health <= 0) {
-        document.getElementById('battle-log').innerText += "You lose!";
-        document.getElementById('attack-button').disabled = true;
-    }
-}
+gameLoop(); // Start the game loop
